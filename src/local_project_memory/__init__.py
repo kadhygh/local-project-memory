@@ -1,0 +1,2 @@
+"""MemoryService MVP package."""
+

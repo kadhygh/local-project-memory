@@ -1,0 +1,1 @@
+﻿"""Indexer layer for MemoryService."""

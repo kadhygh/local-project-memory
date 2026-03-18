@@ -1,0 +1,12 @@
+__pycache__/
+.pytest_cache/
+.pytest_tmp/
+.venv/
+dist/
+build/
+*.pyc
+data/
+*.lance/
+tests_workspace_tmp/
+tests_tmp_run/
+pytest-cache-files-*/
