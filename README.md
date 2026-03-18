@@ -44,7 +44,9 @@ tests/
 - storage is still in-memory
 - LanceDB integration is not yet implemented
 
-See [`docs/roadmap/progress.md`](docs/roadmap/progress.md) for the current implementation state.
+See [docs/README.md](docs/README.md) for the full documentation map.
+
+See [docs/roadmap/progress.md](docs/roadmap/progress.md) for the current implementation state.
 
 ## Quick Start
 

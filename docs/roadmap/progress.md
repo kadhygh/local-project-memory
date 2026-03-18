@@ -116,3 +116,22 @@
 - Python 包名统一为 `local_project_memory`
 - 补充根目录 `README.md`
 - 下一步准备首个 git 提交并推送到空远端仓库
+
+## Knowledge Layer Design
+
+- 新增 `docs/design/memory-governance-and-human-interface.md`
+- 明确人类友好知识层、机器 memory 层、human review 层的边界
+- 明确代码、文档、配置、任务总结四类索引对象的定位
+
+## Workflow Design
+
+- 新增 `docs/design/project-memory-workflow.md`
+- 定义项目初始化、任务执行、任务收尾、持续治理四步闭环
+- 将代码、文档、配置、任务总结索引放入统一工作流
+- 作为后续实现、验收、agent skill 与 role spec 的设计参考
+
+## Documentation Entry
+
+- 新增 `docs/README.md` 作为统一文档入口
+- 根 `README.md` 已增加到 `docs/README.md` 的跳转
+- 后续文档阅读、设计参考、验收入口统一从该文档进入
