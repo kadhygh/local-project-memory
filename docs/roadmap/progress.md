@@ -4,7 +4,7 @@
 
 - 阶段：Phase 1 MVP 实现
 - 目标：跑通 `index.upsert -> search.recall -> memory.store` 的最小闭环
-- 当前状态：MVP 闭环已打通，CLI 与 LanceDB 持久化适配已接入
+- 当前状态：MVP 闭环已打通，CLI 与 LanceDB 持久化适配已接入，当前停靠在正式 MVP 验收前
 
 ## 真实样本项目
 
@@ -47,6 +47,7 @@
 - 新增 CLI：`lpm index`、`lpm search`
 - 新增 LanceDB 持久化适配：`src/local_project_memory/services/lancedb_store.py`
 - 完成测试验证：`18 passed`
+- 当前最新实现已同步推送到远端 `origin/main`
 
 ## 当前里程碑定义
 
