@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from local_project_memory.cli.main import main
 
 
@@ -63,5 +65,60 @@ def test_cli_search_indexes_and_returns_results(workspace_tmp_path: Path, capsys
 
     assert exit_code == 0
     assert payload["indexed"]["upserted"] >= 1
+    assert len(payload["results"]) >= 1
+    assert payload["results"][0]["source_path"].endswith("UnityGatewayAgent.cs")
+
+
+def test_cli_search_can_reuse_existing_lancedb_index(workspace_tmp_path: Path, capsys) -> None:
+    pytest.importorskip("lancedb")
+
+    project_root = workspace_tmp_path / "project_cli_lancedb"
+    uri = workspace_tmp_path / "lancedb_data"
+    _write(project_root / "Docs" / "readme.md", "# Docs\nGateway overview.\n")
+    _write(
+        project_root / "UnityProject" / "Assets" / "Editor" / "UnityGatewayAgent.cs",
+        "public class UnityGatewayAgent { }\n",
+    )
+    _write(project_root / "UnityProject" / "Packages" / "manifest.json", "{\n  \"dependencies\": {}\n}\n")
+
+    main(
+        [
+            "index",
+            "--project-id",
+            "cli-proj-3",
+            "--project-root",
+            str(project_root),
+            "--storage-backend",
+            "lancedb",
+            "--lancedb-uri",
+            str(uri),
+            "--json",
+        ]
+    )
+    capsys.readouterr()
+
+    exit_code = main(
+        [
+            "search",
+            "--project-id",
+            "cli-proj-3",
+            "--project-root",
+            str(project_root),
+            "--storage-backend",
+            "lancedb",
+            "--lancedb-uri",
+            str(uri),
+            "--query",
+            "UnityGatewayAgent",
+            "--no-index",
+            "--json",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+
+    assert exit_code == 0
+    assert payload["indexed"] is None
     assert len(payload["results"]) >= 1
     assert payload["results"][0]["source_path"].endswith("UnityGatewayAgent.cs")

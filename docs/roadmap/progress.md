@@ -4,7 +4,7 @@
 
 - 阶段：Phase 1 MVP 实现
 - 目标：跑通 `index.upsert -> search.recall -> memory.store` 的最小闭环
-- 当前状态：本轮闭环已打通并完成基础验证
+- 当前状态：MVP 闭环已打通，CLI 与 LanceDB 持久化适配已接入
 
 ## 真实样本项目
 
@@ -34,29 +34,19 @@
 - 修复 recall 的噪声问题，避免“零命中也有分”
 - 修复中文 query 的基础 tokenization
 - 修复测试环境对系统 Temp 的依赖，改为仓库内工作目录
-- 完成测试验证：`14 passed`
-- 完成中文 recall smoke check：基于当前仓库 486 个文档 chunk 命中 5 条结果
 - 新增 `ProjectIndexer`，支持对真实项目目录执行全量索引
 - 新增代码文件与配置文件切块第一版
 - 用 `project_mining` 完成首轮真实接入 smoke check
-
-## 本轮任务
-
-- 建立统一推进进度文档
-- 实现文档级索引与切块
-- 实现最小存储层
-- 实现基础 recall 排序与结果结构化
-- 补 API 级集成测试
-- 将 index pipeline 产物接到存储层
-- 整理本轮验证结论与下一轮实现目标
-
-## 当前拆分
-
-- 主线任务：维护进度、整合结果、补运行链路
-- 子任务 A：实现最小存储与 recall 闭环，已完成
-- 子任务 B：实现 index pipeline 的文档切块与记录产出，已完成
-- 子任务 C：补映射层、包结构与 API 级测试，已完成
-- 子任务 D：修复 recall 噪声与中文 tokenization，已完成
+- 完成仓库工程化整理为 `local-project-memory`
+- 文档迁移到 `docs/research`、`docs/design`、`docs/validation`、`docs/roadmap`
+- Python 包名统一为 `local_project_memory`
+- 补充根目录 `README.md`
+- 新增 `docs/README.md` 作为统一文档入口
+- 新增 `docs/design/memory-governance-and-human-interface.md`
+- 新增 `docs/design/project-memory-workflow.md`
+- 新增 CLI：`lpm index`、`lpm search`
+- 新增 LanceDB 持久化适配：`src/local_project_memory/services/lancedb_store.py`
+- 完成测试验证：`18 passed`
 
 ## 当前里程碑定义
 
@@ -68,31 +58,35 @@
 - 能对中文文档执行基础关键词 recall
 - 能通过本地测试与 smoke check 验证最小闭环
 - 能对真实 Unity 项目执行首轮 doc/code/config 索引
+- 能通过 CLI 直接触发项目索引
+- 能通过 LanceDB 持久化保存与复用项目索引
 
 ## 风险与阻塞
 
-- 尚未接入真实 LanceDB，当前先用内存存储替代
 - 尚未接入真实 embedding，当前先用关键词与简单评分替代
 - 代码切块仍是轻解析，不是 AST
 - 配置切块仍是段落/锚点级，不是 schema-aware
 - 当前排序仍是启发式规则，没有 hybrid merge / rerank / diversity control
-- 尚未接入真实 Unity 项目做首轮验收
-- 当前真实项目 smoke check 仍以内存库单进程运行，无法跨进程复用
+- 尚未接入真实 Unity 项目做首轮正式 MVP 验收
+- 当前 LanceDB 适配重点是持久化与兼容性，不是高性能混合检索
 
 ## 下一步
 
-- 接入真实 LanceDB 或至少抽象出存储适配层
 - 以一个本地 Unity 项目执行第一轮 MVP 验收
 - 设计第一轮题库与真实开发任务清单
-- 增加用户可直接触发的索引命令或 API
+- 增加项目级 HTTP 索引接口
+- 演进 recall，从关键词排序提升到 hybrid / vector / rerank
+- 继续完善 memory 写回治理和架构师 agent 规则设计
 
 ## 本轮验证
 
-- `python -m pytest -q tests/test_api.py tests/test_indexer.py tests/test_models.py tests/test_services.py -p no:cacheprovider`
-- `python -m pytest -q tests/test_api.py tests/test_indexer.py tests/test_models.py tests/test_project_index.py tests/test_services.py -p no:cacheprovider`
-- 结果：`14 passed`
-- 文档索引 smoke check：当前仓库共生成 486 个 Markdown chunk
-- 中文 recall smoke check：查询 `长期记忆 检索` 返回 5 条结构化结果
+- `python -m pytest -q tests/test_api.py tests/test_cli.py tests/test_indexer.py tests/test_lancedb_store.py tests/test_models.py tests/test_project_index.py tests/test_services.py -p no:cacheprovider`
+- 结果：`18 passed`
+- 文档索引 smoke check：当前仓库共生成 `486` 个 Markdown chunk
+- 中文 recall smoke check：查询 `长期记忆 检索` 返回 `5` 条结构化结果
+- LanceDB CLI smoke check：
+  - `lpm index --storage-backend lancedb` 可持久化索引 `project_mining`
+  - `lpm search --storage-backend lancedb --no-index` 可在新进程中复用已有索引
 
 ## 真实项目验证
 
@@ -109,38 +103,12 @@
   - 查询 `PrefabHelperApi`，命中 `Assets/Editor/LocalLLMGateway/PrefabHelper/PrefabHelperApi.cs`
   - 查询 `长期记忆 检索`，能返回中文文档结果
 
-## Repository Preparation
+## 设计参考
 
-- 仓库工程化整理为 `local-project-memory`
-- 文档迁移到 `docs/research`、`docs/design`、`docs/validation`、`docs/roadmap`
-- Python 包名统一为 `local_project_memory`
-- 补充根目录 `README.md`
-- 下一步准备首个 git 提交并推送到空远端仓库
-
-## Knowledge Layer Design
-
-- 新增 `docs/design/memory-governance-and-human-interface.md`
-- 明确人类友好知识层、机器 memory 层、human review 层的边界
-- 明确代码、文档、配置、任务总结四类索引对象的定位
-
-## Workflow Design
-
-- 新增 `docs/design/project-memory-workflow.md`
-- 定义项目初始化、任务执行、任务收尾、持续治理四步闭环
-- 将代码、文档、配置、任务总结索引放入统一工作流
-- 作为后续实现、验收、agent skill 与 role spec 的设计参考
-
-## Documentation Entry
-
-- 新增 `docs/README.md` 作为统一文档入口
-- 根 `README.md` 已增加到 `docs/README.md` 的跳转
-- 后续文档阅读、设计参考、验收入口统一从该文档进入
-
-## CLI Design
-
-- 目标：为项目索引提供用户可直接调用的命令入口
-- 第一版命令：
-  - `lpm index`
-  - `lpm search`
-- 当前约束：
-  - `search` 需要在同一进程内先执行索引，因为存储后端仍为内存实现
+- 知识层边界：`docs/design/memory-governance-and-human-interface.md`
+- 工作流闭环：`docs/design/project-memory-workflow.md`
+- 索引流水线：`docs/design/index-pipeline-design.md`
+- Recall 接口：`docs/design/recall-api-design.md`
+- Schema：`docs/design/schema-design.md`
+- 验收标准：`docs/validation/mvp-acceptance.md`
+- 统一文档入口：`docs/README.md`

@@ -10,7 +10,10 @@ _TOKEN_PATTERN = re.compile(r"[a-zA-Z0-9_]+")
 
 
 class RecallService:
-    """Keyword-based retrieval service backed by the in-memory repository."""
+    """Keyword-based retrieval service backed by the configured repository."""
+
+    def __init__(self, repository=None) -> None:
+        self.repository = repository or REPOSITORY
 
     def recall(self, request: RecallRequest) -> RecallResponse:
         records = self._apply_filters(request)
@@ -51,7 +54,7 @@ class RecallService:
         )
 
     def _apply_filters(self, request: RecallRequest) -> list[object]:
-        records = [r for r in REPOSITORY.list_records() if r.project_id == request.project_id]
+        records = [r for r in self.repository.list_records() if r.project_id == request.project_id]
 
         if request.scopes:
             scope_set = set(request.scopes)
@@ -106,7 +109,6 @@ class RecallService:
             if matched:
                 matched_terms += 1
 
-        # Avoid baseline-only ranking noise when no query term is matched.
         if matched_terms == 0:
             return 0.0
 
@@ -158,11 +160,9 @@ class RecallService:
             tokens.add(segment)
             return
 
-        # Use CJK bigrams to preserve some phrase locality and reduce broad noise.
         for index in range(len(segment) - 1):
             tokens.add(segment[index : index + 2])
 
     def _is_cjk(self, char: str) -> bool:
         codepoint = ord(char)
         return 0x4E00 <= codepoint <= 0x9FFF
-

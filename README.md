@@ -11,7 +11,7 @@ It helps agents and IDE assistants work against real codebases by:
 The current MVP includes:
 
 - a FastAPI service surface
-- an in-memory storage backend
+- a storage abstraction with memory and LanceDB backends
 - Markdown, C#, and config chunking
 - keyword-based recall with metadata filters
 - project-level indexing for local repositories
@@ -41,8 +41,8 @@ tests/
 
 - MVP indexing and recall loop is working
 - real-project smoke check has been run against `project_mining`
-- storage is still in-memory
-- LanceDB integration is not yet implemented
+- LanceDB persistence adapter is available
+- retrieval is still keyword-based and not yet hybrid / vector-backed
 
 See [docs/README.md](docs/README.md) for the full documentation map.
 
@@ -59,7 +59,7 @@ python -m pip install -e .[dev]
 Run tests:
 
 ```bash
-python -m pytest -q tests/test_api.py tests/test_cli.py tests/test_indexer.py tests/test_models.py tests/test_project_index.py tests/test_services.py -p no:cacheprovider
+python -m pytest -q tests/test_api.py tests/test_cli.py tests/test_indexer.py tests/test_lancedb_store.py tests/test_models.py tests/test_project_index.py tests/test_services.py -p no:cacheprovider
 ```
 
 Run project indexing from the CLI:
@@ -68,16 +68,22 @@ Run project indexing from the CLI:
 python -m local_project_memory.cli.main index --project-id project-mining --project-root D:\Projects\project_mining --json
 ```
 
-Run a one-shot search from the CLI:
+Run project indexing with LanceDB persistence:
 
 ```bash
-python -m local_project_memory.cli.main search --project-id project-mining --project-root D:\Projects\project_mining --query "UnityGatewayAgent" --json
+python -m local_project_memory.cli.main index --project-id project-mining --project-root D:\Projects\project_mining --storage-backend lancedb --lancedb-uri data\project-mining-lancedb --json
 ```
 
-Note: the current CLI search command indexes and searches within the same process because the MVP storage backend is still in-memory.
+Query an existing LanceDB-backed index without re-indexing:
+
+```bash
+python -m local_project_memory.cli.main search --project-id project-mining --project-root D:\Projects\project_mining --storage-backend lancedb --lancedb-uri data\project-mining-lancedb --query "UnityGatewayAgent" --no-index --json
+```
+
+Note: the `search` command only works across separate processes when using the LanceDB backend. The default in-memory backend still requires indexing and searching in the same process.
 
 ## Next Major Steps
 
-- add a user-facing indexing command or API workflow
-- introduce a LanceDB-backed storage adapter
+- evolve recall from keyword scoring to hybrid retrieval
+- add a user-facing API workflow for project indexing
 - run the first full MVP acceptance pass on a real local Unity project

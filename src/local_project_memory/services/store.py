@@ -73,13 +73,15 @@ REPOSITORY = InMemoryRepository()
 
 
 class StoreService:
-    """In-memory storage implementation for the MVP scaffold."""
+    """Storage service abstraction over the current repository backend."""
+
+    def __init__(self, repository=None) -> None:
+        self.repository = repository or REPOSITORY
 
     def upsert(self, request: IndexUpsertRequest) -> IndexUpsertResponse:
-        upserted = REPOSITORY.upsert_records(request.records)
+        upserted = self.repository.upsert_records(request.records)
         return IndexUpsertResponse(project_id=request.project_id, upserted=upserted)
 
     def store_task_summary(self, request: MemoryStoreRequest) -> MemoryStoreResponse:
-        REPOSITORY.store_task_summary(request)
+        self.repository.store_task_summary(request)
         return MemoryStoreResponse(project_id=request.project_id, task_id=request.task_id, stored=True)
-
