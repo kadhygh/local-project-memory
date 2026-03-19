@@ -59,8 +59,22 @@ python -m pip install -e .[dev]
 Run tests:
 
 ```bash
-python -m pytest -q tests/test_api.py tests/test_indexer.py tests/test_models.py tests/test_project_index.py tests/test_services.py -p no:cacheprovider
+python -m pytest -q tests/test_api.py tests/test_cli.py tests/test_indexer.py tests/test_models.py tests/test_project_index.py tests/test_services.py -p no:cacheprovider
 ```
+
+Run project indexing from the CLI:
+
+```bash
+python -m local_project_memory.cli.main index --project-id project-mining --project-root D:\Projects\project_mining --json
+```
+
+Run a one-shot search from the CLI:
+
+```bash
+python -m local_project_memory.cli.main search --project-id project-mining --project-root D:\Projects\project_mining --query "UnityGatewayAgent" --json
+```
+
+Note: the current CLI search command indexes and searches within the same process because the MVP storage backend is still in-memory.
 
 ## Next Major Steps
 

@@ -20,13 +20,12 @@ dev = [
   "pytest>=8.0,<9.0"
 ]
 
+[project.scripts]
+lpm = "local_project_memory.cli.main:run"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--basetemp=./.pytest_tmp"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/local_project_memory"]
-
-
-
-
